@@ -92,17 +92,20 @@ export const LoginPage = () => {
         <div className="backdrop-blur-xl bg-slate-900/80 border border-slate-800/80 shadow-2xl shadow-blue-950/40 rounded-2xl sm:rounded-3xl p-5 sm:p-10 transition-all duration-300 hover:border-slate-700/80">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-xl shadow-blue-950/50 mb-4 ring-4 ring-blue-500/10">
-              <img
-                src="/logo.png"
-                alt="PC Doctor Logo"
-                className="w-14 h-14 object-contain"
-                onError={(e) => {
-                  e.currentTarget.style.display = 'none';
-                  e.currentTarget.nextSibling.style.display = 'block';
-                }}
-              />
-              <Laptop className="w-8 h-8 text-blue-400 hidden" />
+            <div className="relative inline-block mb-4 group">
+              <div className="absolute -inset-2 rounded-3xl bg-gradient-to-r from-blue-600 via-cyan-500 to-indigo-600 opacity-40 blur-lg animate-glow group-hover:opacity-75 transition duration-500" />
+              <div className="relative inline-flex items-center justify-center p-3 rounded-2xl bg-slate-950 border border-slate-700/80 shadow-2xl shadow-blue-500/20 ring-2 ring-slate-800/80 animate-float">
+                <img
+                  src="/logo.png"
+                  alt="PC Doctor Logo"
+                  className="w-16 h-16 object-contain rounded-xl transition-transform duration-300 group-hover:scale-105"
+                  onError={(e) => {
+                    e.currentTarget.style.display = 'none';
+                    e.currentTarget.nextSibling.style.display = 'block';
+                  }}
+                />
+                <Laptop className="w-8 h-8 text-blue-400 hidden" />
+              </div>
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

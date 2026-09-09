@@ -97,3 +97,41 @@
   }
 }
 
+/* Ambient Subtle Float Animation */
+@keyframes float {
+  0%, 100% { transform: translateY(0px); }
+  50% { transform: translateY(-3px); }
+}
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+/* Ambient Breathing Glow */
+@keyframes breathingGlow {
+  0%, 100% { opacity: 0.35; transform: scale(0.98); }
+  50% { opacity: 0.75; transform: scale(1.05); }
+}
+.animate-glow {
+  animation: breathingGlow 3.5s ease-in-out infinite;
+}
+
+/* Gentle Pulse for Badges and Highlights */
+@keyframes pulseSubtle {
+  0%, 100% { transform: scale(1); opacity: 1; }
+  50% { transform: scale(1.05); opacity: 0.85; }
+}
+.animate-pulse-subtle {
+  animation: pulseSubtle 2.5s ease-in-out infinite;
+}
+
+/* Shimmer Sweep Animation */
+@keyframes shimmer {
+  0% { transform: translateX(-100%); }
+  100% { transform: translateX(200%); }
+}
+.animate-shimmer {
+  animation: shimmer 2.5s infinite linear;
+}
+
+
+
