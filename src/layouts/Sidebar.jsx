@@ -56,31 +56,36 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
         )}
       >
         {/* Brand Header */}
-        <div className="h-16 px-5 flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80">
-          <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 p-1 flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden">
+        <div className="h-16 px-4 flex items-center justify-between gap-2.5 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
+          <NavLink
+            to="/"
+            onClick={() => isMobileOpen && onCloseMobile()}
+            className="flex items-center gap-2.5 min-w-0 group cursor-pointer"
+          >
+            <div className="w-11 h-11 rounded-2xl bg-slate-950 flex items-center justify-center p-0.5 shadow-md shadow-slate-900/10 ring-2 ring-slate-800/40 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
               <img
                 src="/logo.png"
                 alt="PC Doctor Logo"
-                className="w-full h-full object-contain"
+                className="w-full h-full object-contain rounded-xl"
                 onError={(e) => {
                   e.currentTarget.style.display = 'none';
                   e.currentTarget.nextSibling.style.display = 'flex';
                 }}
               />
-              <div className="hidden w-full h-full items-center justify-center bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-lg">
+              <div className="hidden w-full h-full items-center justify-center bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl">
                 <Laptop className="w-5 h-5" />
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-base font-bold text-slate-900 dark:text-white truncate">
+              <h1 className="text-sm font-extrabold text-slate-900 dark:text-white truncate tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {shopSettings?.shopName || 'PC Doctor'}
               </h1>
-              <p className="text-[11px] text-blue-600 dark:text-blue-400 font-medium truncate">
+              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
                 POS & Repair System
               </p>
             </div>
-          </div>
+          </NavLink>
 
           {/* Close button for Mobile Drawer */}
           <button
