@@ -39,11 +39,21 @@ export const Header = ({ onToggleMobile }) => {
           <Menu className="w-5 h-5" />
         </button>
 
-        <div className="min-w-0">
-          <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider truncate">
-            {shopSettings?.shopName || 'PC Doctor'}
-          </p>
-          <p className="hidden sm:block text-[11px] text-slate-500 dark:text-slate-400 font-medium">{todayStr}</p>
+        <div className="flex items-center gap-2.5 min-w-0">
+          <img
+            src="/logo.png"
+            alt="Logo"
+            className="w-7 h-7 object-contain md:hidden rounded-lg bg-white p-0.5 border border-slate-200 dark:border-slate-700 shrink-0"
+            onError={(e) => {
+              e.currentTarget.style.display = 'none';
+            }}
+          />
+          <div className="min-w-0">
+            <p className="text-xs font-bold text-blue-600 dark:text-blue-400 uppercase tracking-wider truncate">
+              {shopSettings?.shopName || 'PC Doctor'}
+            </p>
+            <p className="hidden sm:block text-[11px] text-slate-500 dark:text-slate-400 font-medium">{todayStr}</p>
+          </div>
         </div>
       </div>
 

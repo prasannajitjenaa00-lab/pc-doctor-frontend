@@ -41,19 +41,41 @@
 
 /* Print Optimization for Invoices & Receipts */
 @media print {
+  @page {
+    margin: 8mm;
+    size: auto;
+  }
+
   body {
     background: #ffffff !important;
     color: #000000 !important;
   }
+
+  /* Hide the web application UI when printing */
+  body * {
+    visibility: hidden !important;
+  }
+
+  /* Exclusively reveal the printable invoice */
+  #printable-invoice,
+  #printable-invoice * {
+    visibility: visible !important;
+  }
+
+  #printable-invoice {
+    display: block !important;
+    position: absolute !important;
+    left: 0 !important;
+    top: 0 !important;
+    width: 100% !important;
+    margin: 0 !important;
+    padding: 10px !important;
+    background: #ffffff !important;
+    color: #000000 !important;
+  }
+
   .no-print {
     display: none !important;
-  }
-  .print-only {
-    display: block !important;
-  }
-  .print-shadow-none {
-    box-shadow: none !important;
-    border: none !important;
   }
 }
 

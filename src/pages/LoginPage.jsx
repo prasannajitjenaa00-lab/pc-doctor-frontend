@@ -92,8 +92,17 @@ export const LoginPage = () => {
         <div className="backdrop-blur-xl bg-slate-900/80 border border-slate-800/80 shadow-2xl shadow-blue-950/40 rounded-2xl sm:rounded-3xl p-5 sm:p-10 transition-all duration-300 hover:border-slate-700/80">
           {/* Header */}
           <div className="text-center mb-8">
-            <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-gradient-to-tr from-blue-600 to-indigo-600 text-white shadow-lg shadow-blue-500/25 mb-4 ring-4 ring-blue-500/10">
-              <Laptop className="w-8 h-8" />
+            <div className="inline-flex items-center justify-center p-3 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 shadow-xl shadow-blue-950/50 mb-4 ring-4 ring-blue-500/10">
+              <img
+                src="/logo.png"
+                alt="PC Doctor Logo"
+                className="w-14 h-14 object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextSibling.style.display = 'block';
+                }}
+              />
+              <Laptop className="w-8 h-8 text-blue-400 hidden" />
             </div>
 
             <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">

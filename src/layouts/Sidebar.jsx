@@ -58,8 +58,19 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
         {/* Brand Header */}
         <div className="h-16 px-5 flex items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800/80">
           <div className="flex items-center gap-3 min-w-0">
-            <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-blue-600 to-indigo-600 flex items-center justify-center text-white shadow-md shadow-blue-500/20 shrink-0">
-              <Laptop className="w-5 h-5" />
+            <div className="w-10 h-10 rounded-xl bg-white dark:bg-slate-800 p-1 flex items-center justify-center shadow-md shadow-blue-500/20 shrink-0 border border-slate-200/80 dark:border-slate-700/80 overflow-hidden">
+              <img
+                src="/logo.png"
+                alt="PC Doctor Logo"
+                className="w-full h-full object-contain"
+                onError={(e) => {
+                  e.currentTarget.style.display = 'none';
+                  e.currentTarget.nextSibling.style.display = 'flex';
+                }}
+              />
+              <div className="hidden w-full h-full items-center justify-center bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-lg">
+                <Laptop className="w-5 h-5" />
+              </div>
             </div>
             <div className="flex-1 min-w-0">
               <h1 className="text-base font-bold text-slate-900 dark:text-white truncate">

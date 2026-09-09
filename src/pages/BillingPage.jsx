@@ -31,6 +31,7 @@ import Button from '../components/common/Button';
 import Input from '../components/common/Input';
 import Modal from '../components/common/Modal';
 import Badge from '../components/common/Badge';
+import PrintableInvoice from '../components/billing/PrintableInvoice';
 
 export const BillingPage = () => {
   const { shopSettings } = useShop();
@@ -748,6 +749,11 @@ export const BillingPage = () => {
             </div>
           </div>
         </Modal>
+      )}
+
+      {/* Exclusively visible when printing */}
+      {completedBill && (
+        <PrintableInvoice bill={completedBill} shopSettings={shopSettings} />
       )}
 
       {/* Mobile Sticky Quick Cart Summary Bar */}
