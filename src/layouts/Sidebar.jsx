@@ -56,13 +56,13 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
         )}
       >
         {/* Brand Header */}
-        <div className="h-16 px-4 flex items-center justify-between gap-2.5 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
+        <div className="h-[76px] px-3.5 flex items-center justify-between gap-2.5 border-b border-slate-100 dark:border-slate-800/80 shrink-0">
           <NavLink
             to="/"
             onClick={() => isMobileOpen && onCloseMobile()}
-            className="flex items-center gap-2.5 min-w-0 group cursor-pointer"
+            className="flex items-center gap-3 min-w-0 group cursor-pointer"
           >
-            <div className="w-11 h-11 rounded-2xl bg-slate-950 flex items-center justify-center p-0.5 shadow-md shadow-slate-900/10 ring-2 ring-slate-800/40 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
+            <div className="w-14 h-14 rounded-2xl bg-slate-950 flex items-center justify-center p-1 shadow-lg shadow-slate-900/20 ring-2 ring-slate-800/60 overflow-hidden shrink-0 group-hover:scale-105 transition-transform">
               <img
                 src="/logo.png"
                 alt="PC Doctor Logo"
@@ -73,16 +73,16 @@ export const Sidebar = ({ isMobileOpen, onCloseMobile }) => {
                 }}
               />
               <div className="hidden w-full h-full items-center justify-center bg-gradient-to-tr from-blue-600 to-indigo-600 text-white rounded-xl">
-                <Laptop className="w-5 h-5" />
+                <Laptop className="w-7 h-7" />
               </div>
             </div>
             <div className="flex-1 min-w-0">
-              <h1 className="text-sm font-extrabold text-slate-900 dark:text-white truncate tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+              <h1 className="text-base font-black text-slate-900 dark:text-white truncate tracking-tight group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                 {shopSettings?.shopName || 'PC Doctor'}
               </h1>
-              <p className="text-[11px] font-semibold text-slate-500 dark:text-slate-400 truncate flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse shrink-0" />
-                POS & Repair System
+              <p className="text-xs font-semibold text-blue-600 dark:text-blue-400 truncate flex items-center gap-1.5 mt-0.5">
+                <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
+                POS & Repair
               </p>
             </div>
           </NavLink>
