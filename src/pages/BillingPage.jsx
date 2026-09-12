@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { useQuery, useMutation } from '@tanstack/react-query';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import toast from 'react-hot-toast';
 import {
   Search,
@@ -19,7 +19,11 @@ import {
   Smartphone,
   RotateCcw,
   Boxes,
-  ArrowRight
+  ArrowRight,
+  Zap,
+  Wrench,
+  PlusCircle,
+  Sparkles
 } from 'lucide-react';
 import api from '../services/api';
 import { config } from '../config';
@@ -33,7 +37,16 @@ import Modal from '../components/common/Modal';
 import Badge from '../components/common/Badge';
 import PrintableInvoice from '../components/billing/PrintableInvoice';
 
+const INSTANT_SERVICE_PRESETS = [
+  { name: 'OS & Driver Installation', price: 500, type: 'Service' },
+  { name: 'Cleaning & Thermal Paste', price: 300, type: 'Service' },
+  { name: 'Virus & Malware Removal', price: 400, type: 'Service' },
+  { name: 'Chip-Level Motherboard Repair', price: 1500, type: 'Service' },
+  { name: 'Data Recovery / Backup', price: 800, type: 'Service' }
+];
+
 export const BillingPage = () => {
+  const queryClient = useQueryClient();
   const { shopSettings } = useShop();
 
   // Search and Filter states
@@ -57,6 +70,18 @@ export const BillingPage = () => {
     email: '',
     address: '',
     gstNumber: ''
+  });
+
+  // Instant Product / Service Modal state
+  const [isInstantModalOpen, setIsInstantModalOpen] = useState(false);
+  const [instantItem, setInstantItem] = useState({
+    type: 'Service',
+    name: '',
+    unitPrice: '',
+    buyPrice: '',
+    qty: 1,
+    gstRate: shopSettings?.defaultGstRate || 18,
+    saveToCatalogue: false
   });
 
   // Completed Invoice Modal state
@@ -148,6 +173,107 @@ export const BillingPage = () => {
         ];
       }
     });
+  };
+
+  // Add Custom Instant Product / Service Handler
+  const handleAddInstantItem = async (e) => {
+    if (e) e.preventDefault();
+    if (!instantItem.name.trim()) {
+      toast.error('Please enter item or service description');
+      return;
+    }
+    const price = Number(instantItem.unitPrice);
+    if (isNaN(price) || price < 0) {
+      toast.error('Please enter a valid price');
+      return;
+    }
+
+    let productId = null;
+
+    if (instantItem.saveToCatalogue) {
+      try {
+        const res = await api.post('/products', {
+          name: instantItem.name.trim(),
+          sellingPrice: price,
+          buyPrice: Number(instantItem.buyPrice) || 0,
+          stock: Number(instantItem.qty) || 1,
+          minStock: 2,
+          description: `Instant ${instantItem.type} created during POS billing`
+        });
+        if (res.data) {
+          productId = res.data._id;
+          refetchProducts();
+          queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
+          toast.success(`Saved "${instantItem.name}" to Product Catalogue!`);
+        }
+      } catch (err) {
+        console.error('Failed to save to catalogue', err);
+      }
+    }
+
+    const newItem = {
+      product: productId,
+      name: instantItem.name.trim(),
+      barcode: instantItem.type === 'Service' ? 'SERVICE' : 'INSTANT',
+      sku: instantItem.type === 'Service' ? 'SRV-CUSTOM' : 'PRD-INSTANT',
+      buyPrice: Number(instantItem.buyPrice) || 0,
+      unitPrice: price,
+      stock: 999,
+      qty: Number(instantItem.qty) || 1,
+      gstRate: Number(instantItem.gstRate) || 0,
+      total: (Number(instantItem.qty) || 1) * price,
+      isInstant: true,
+      itemType: instantItem.type
+    };
+
+    setCart((prev) => [...prev, newItem]);
+    toast.success(`Added ${instantItem.type.toLowerCase()}: ${newItem.name}`);
+
+    // Reset instant item form
+    setInstantItem({
+      type: 'Service',
+      name: '',
+      unitPrice: '',
+      buyPrice: '',
+      qty: 1,
+      gstRate: shopSettings?.defaultGstRate || 18,
+      saveToCatalogue: false
+    });
+    setIsInstantModalOpen(false);
+  };
+
+  // Add Preset Instant Service Handler
+  const handleAddPresetService = (preset) => {
+    const newItem = {
+      product: null,
+      name: preset.name,
+      barcode: 'SERVICE',
+      sku: 'SRV-PRESET',
+      buyPrice: 0,
+      unitPrice: preset.price,
+      stock: 999,
+      qty: 1,
+      gstRate: shopSettings?.defaultGstRate || 18,
+      total: preset.price,
+      isInstant: true,
+      itemType: 'Service'
+    };
+
+    setCart((prev) => {
+      const existingIndex = prev.findIndex((item) => item.name === preset.name && item.isInstant);
+      if (existingIndex > -1) {
+        const existing = prev[existingIndex];
+        const updated = [...prev];
+        updated[existingIndex] = {
+          ...existing,
+          qty: existing.qty + 1,
+          total: (existing.qty + 1) * existing.unitPrice
+        };
+        return updated;
+      }
+      return [...prev, newItem];
+    });
+    toast.success(`Added service preset: ${preset.name}`);
   };
 
   // Update Cart Quantity
@@ -263,23 +389,71 @@ export const BillingPage = () => {
           </p>
         </div>
 
-        {/* Barcode Quick Scan Input */}
-        <form onSubmit={handleBarcodeSubmit} className="flex items-center gap-2 max-w-md w-full sm:w-auto">
-          <div className="relative flex-1 sm:w-72">
-            <Barcode className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-            <input
-              ref={barcodeInputRef}
-              type="text"
-              placeholder="Scan Barcode / SKU (Enter)..."
-              value={barcodeInput}
-              onChange={(e) => setBarcodeInput(e.target.value)}
-              className="w-full pl-10 pr-4 py-2 text-sm rounded-xl border border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-950/30 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 font-mono"
-            />
-          </div>
-          <Button type="submit" variant="primary" size="md">
-            Scan
+        {/* Header Right Actions */}
+        <div className="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full sm:w-auto">
+          {/* Barcode Quick Scan Input */}
+          <form onSubmit={handleBarcodeSubmit} className="flex items-center gap-2 flex-1 sm:flex-none">
+            <div className="relative flex-1 sm:w-64">
+              <Barcode className="absolute left-3.5 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                ref={barcodeInputRef}
+                type="text"
+                placeholder="Scan Barcode / SKU..."
+                value={barcodeInput}
+                onChange={(e) => setBarcodeInput(e.target.value)}
+                className="w-full pl-10 pr-4 py-2 text-sm rounded-xl border border-blue-300 dark:border-blue-700 bg-blue-50/50 dark:bg-blue-950/30 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-blue-500/30 focus:border-blue-500 font-mono"
+              />
+            </div>
+            <Button type="submit" variant="primary" size="md">
+              Scan
+            </Button>
+          </form>
+
+          {/* Add Instant Product or Service Button */}
+          <Button
+            type="button"
+            variant="secondary"
+            icon={PlusCircle}
+            onClick={() => setIsInstantModalOpen(true)}
+            className="bg-purple-50 text-purple-700 hover:bg-purple-100 border border-purple-200 dark:bg-purple-950/40 dark:text-purple-300 dark:border-purple-800 text-xs sm:text-sm py-2"
+          >
+            + Instant Item / Service
           </Button>
-        </form>
+        </div>
+      </div>
+
+      {/* Quick Instant Services Presets */}
+      <div className="p-3 bg-gradient-to-r from-purple-500/10 via-blue-500/10 to-indigo-500/10 dark:from-purple-950/30 dark:via-blue-950/30 dark:to-indigo-950/30 border border-purple-200/60 dark:border-purple-800/40 rounded-2xl">
+        <div className="flex items-center justify-between gap-2 mb-2">
+          <div className="flex items-center gap-1.5 text-xs font-bold text-purple-900 dark:text-purple-200 uppercase tracking-wider">
+            <Zap className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            <span>Quick Service Presets</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => setIsInstantModalOpen(true)}
+            className="text-xs font-bold text-purple-600 dark:text-purple-400 hover:underline flex items-center gap-1"
+          >
+            <PlusCircle className="w-3.5 h-3.5" />
+            <span>Add Custom Item</span>
+          </button>
+        </div>
+        <div className="flex flex-wrap gap-2">
+          {INSTANT_SERVICE_PRESETS.map((preset, pIdx) => (
+            <button
+              key={pIdx}
+              type="button"
+              onClick={() => handleAddPresetService(preset)}
+              className="px-3 py-1.5 rounded-xl bg-white dark:bg-slate-900 border border-purple-200 dark:border-purple-800/60 hover:border-purple-500 text-slate-800 dark:text-slate-200 text-xs font-medium shadow-sm transition-all hover:scale-[1.02] flex items-center gap-1.5 cursor-pointer"
+            >
+              <Wrench className="w-3.5 h-3.5 text-purple-500" />
+              <span>{preset.name}</span>
+              <span className="font-bold text-purple-600 dark:text-purple-400">
+                ({formatCurrency(preset.price, shopSettings?.currencySymbol)})
+              </span>
+            </button>
+          ))}
+        </div>
       </div>
 
       {/* Mobile Tab Switcher (< lg screens) */}
@@ -473,8 +647,19 @@ export const BillingPage = () => {
                   cart.map((item, idx) => (
                     <div key={idx} className="py-2.5 flex items-center justify-between gap-3">
                       <div className="min-w-0 flex-1">
-                        <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 truncate">
-                          {item.name}
+                        <h4 className="text-xs font-semibold text-slate-900 dark:text-slate-100 flex items-center gap-1.5 flex-wrap">
+                          <span className="truncate">{item.name}</span>
+                          {item.isInstant && (
+                            <span
+                              className={`px-1.5 py-0.5 text-[9px] font-bold uppercase rounded ${
+                                item.itemType === 'Service'
+                                  ? 'bg-purple-100 text-purple-700 dark:bg-purple-950 dark:text-purple-300'
+                                  : 'bg-amber-100 text-amber-700 dark:bg-amber-950 dark:text-amber-300'
+                              }`}
+                            >
+                              {item.itemType || 'Instant'}
+                            </span>
+                          )}
                         </h4>
                         <p className="text-[11px] text-slate-500 dark:text-slate-400">
                           {formatCurrency(item.unitPrice, shopSettings?.currencySymbol)} × {item.qty}
@@ -750,6 +935,160 @@ export const BillingPage = () => {
           </div>
         </Modal>
       )}
+
+      {/* MODAL: Add Instant Product or Instant Service */}
+      <Modal
+        isOpen={isInstantModalOpen}
+        onClose={() => setIsInstantModalOpen(false)}
+        title="Add Instant Product or Service"
+        subtitle="Add custom service fees or unlisted products directly to the bill cart"
+        size="md"
+      >
+        <form onSubmit={handleAddInstantItem} className="space-y-4">
+          {/* Type Selection: Product vs Service */}
+          <div>
+            <label className="block text-xs font-bold uppercase tracking-wider text-slate-600 dark:text-slate-400 mb-1.5">
+              Item Category Type *
+            </label>
+            <div className="grid grid-cols-2 gap-3">
+              <button
+                type="button"
+                onClick={() => setInstantItem((prev) => ({ ...prev, type: 'Service' }))}
+                className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  instantItem.type === 'Service'
+                    ? 'bg-purple-600 text-white border-purple-600 shadow-md shadow-purple-500/20'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Wrench className="w-4 h-4" />
+                <span>Instant Service / Labour</span>
+              </button>
+              <button
+                type="button"
+                onClick={() => setInstantItem((prev) => ({ ...prev, type: 'Product' }))}
+                className={`py-2.5 px-4 rounded-xl text-xs font-bold border transition-all flex items-center justify-center gap-2 cursor-pointer ${
+                  instantItem.type === 'Product'
+                    ? 'bg-amber-600 text-white border-amber-600 shadow-md shadow-amber-500/20'
+                    : 'bg-slate-50 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:bg-slate-100'
+                }`}
+              >
+                <Boxes className="w-4 h-4" />
+                <span>Instant Product / Accessory</span>
+              </button>
+            </div>
+          </div>
+
+          {/* Item Name */}
+          <div>
+            <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+              Item / Service Description *
+            </label>
+            <input
+              type="text"
+              required
+              placeholder={
+                instantItem.type === 'Service'
+                  ? 'e.g. Screen Replacement Labour Charge, Diagnostic Fee'
+                  : 'e.g. Used SATA Cable, Refurbished RAM Stick 8GB'
+              }
+              value={instantItem.name}
+              onChange={(e) => setInstantItem((prev) => ({ ...prev, name: e.target.value }))}
+              className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+            />
+          </div>
+
+          {/* Pricing & Qty Grid */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Selling Price ({shopSettings?.currencySymbol || '₹'}) *
+              </label>
+              <input
+                type="number"
+                required
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={instantItem.unitPrice}
+                onChange={(e) => setInstantItem((prev) => ({ ...prev, unitPrice: e.target.value }))}
+                className="w-full px-3 py-2 text-sm font-bold text-slate-900 dark:text-slate-100 rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Quantity *
+              </label>
+              <input
+                type="number"
+                required
+                min="1"
+                value={instantItem.qty}
+                onChange={(e) => setInstantItem((prev) => ({ ...prev, qty: e.target.value }))}
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              />
+            </div>
+          </div>
+
+          {/* Buy Price & GST */}
+          <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                Cost / Buy Price ({shopSettings?.currencySymbol || '₹'}) <span className="text-slate-400 font-normal">(Optional)</span>
+              </label>
+              <input
+                type="number"
+                min="0"
+                step="0.01"
+                placeholder="0.00"
+                value={instantItem.buyPrice}
+                onChange={(e) => setInstantItem((prev) => ({ ...prev, buyPrice: e.target.value }))}
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              />
+            </div>
+
+            <div>
+              <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1">
+                GST Rate (%)
+              </label>
+              <select
+                value={instantItem.gstRate}
+                onChange={(e) => setInstantItem((prev) => ({ ...prev, gstRate: Number(e.target.value) }))}
+                className="w-full px-3 py-2 text-sm rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 focus:outline-none focus:ring-2 focus:ring-purple-500/20"
+              >
+                <option value={0}>0% (Exempted)</option>
+                <option value={5}>5%</option>
+                <option value={12}>12%</option>
+                <option value={18}>18% (Standard)</option>
+                <option value={28}>28%</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Save to Catalogue option */}
+          <div className="p-3 rounded-xl bg-purple-50/50 dark:bg-purple-950/20 border border-purple-100 dark:border-purple-900/40">
+            <label className="flex items-center gap-2.5 text-xs text-purple-900 dark:text-purple-200 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={instantItem.saveToCatalogue}
+                onChange={(e) => setInstantItem((prev) => ({ ...prev, saveToCatalogue: e.target.checked }))}
+                className="w-4 h-4 rounded text-purple-600 focus:ring-purple-500 border-slate-300"
+              />
+              <span>Save this item permanently to product inventory catalogue for future billing</span>
+            </label>
+          </div>
+
+          {/* Actions */}
+          <div className="pt-3 border-t flex justify-end gap-2">
+            <Button variant="secondary" onClick={() => setIsInstantModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button type="submit" variant="primary" icon={PlusCircle}>
+              Add to Bill Cart
+            </Button>
+          </div>
+        </form>
+      </Modal>
 
       {/* Exclusively visible when printing */}
       {completedBill && (

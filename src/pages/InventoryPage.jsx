@@ -13,7 +13,8 @@ import {
   ArrowUpDown,
   CheckCircle2,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Trash2
 } from 'lucide-react';
 import api from '../services/api';
 import { config } from '../config';
@@ -42,6 +43,10 @@ export const InventoryPage = () => {
     type: 'Restock',
     notes: ''
   });
+
+  // Delete Modal State
+  const [deleteConfirmProduct, setDeleteConfirmProduct] = useState(null);
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // History Modal State
   const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
@@ -108,6 +113,26 @@ export const InventoryPage = () => {
     },
     onError: (err) => {
       toast.error(err.message || 'Failed to seed dummy products');
+    }
+  });
+
+  // Delete Product Mutation
+  const deleteProductMutation = useMutation({
+    mutationFn: async (id) => {
+      const res = await api.delete(`/products/${id}`);
+      return res.data;
+    },
+    onSuccess: () => {
+      toast.success('Product deleted from inventory');
+      setIsDeleteModalOpen(false);
+      setDeleteConfirmProduct(null);
+      queryClient.invalidateQueries({ queryKey: ['inventory-products'] });
+      queryClient.invalidateQueries({ queryKey: ['products-list'] });
+      queryClient.invalidateQueries({ queryKey: ['dashboard-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['billing-products'] });
+    },
+    onError: (err) => {
+      toast.error(err.message || 'Failed to delete product');
     }
   });
 
@@ -295,8 +320,21 @@ export const InventoryPage = () => {
                           variant="ghost"
                           onClick={() => handleOpenHistory(product)}
                           className="text-xs py-1 px-2"
+                          title="Stock Audit History"
                         >
                           <History className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          size="sm"
+                          variant="ghost"
+                          onClick={() => {
+                            setDeleteConfirmProduct(product);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="text-xs py-1 px-2 text-rose-500 hover:text-rose-700 hover:bg-rose-50 dark:hover:bg-rose-950/40"
+                          title="Delete Product"
+                        >
+                          <Trash2 className="w-3.5 h-3.5" />
                         </Button>
                       </div>
                     </TableCell>
@@ -453,6 +491,39 @@ export const InventoryPage = () => {
           ) : (
             <div className="py-8 text-center text-slate-400 text-xs">No audit history entries for this item.</div>
           )}
+        </Modal>
+      )}
+
+      {/* MODAL: Delete Confirmation */}
+      {deleteConfirmProduct && (
+        <Modal
+          isOpen={isDeleteModalOpen}
+          onClose={() => setIsDeleteModalOpen(false)}
+          title={`Delete Product`}
+          subtitle={`Are you sure you want to remove '${deleteConfirmProduct.name}'?`}
+          size="sm"
+        >
+          <div className="space-y-4">
+            <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 flex items-start gap-3">
+              <AlertTriangle className="w-5 h-5 text-rose-600 dark:text-rose-400 shrink-0 mt-0.5" />
+              <p className="text-xs text-rose-800 dark:text-rose-300">
+                This item will be removed from active inventory and billing catalog. Existing invoice records referencing this product will be preserved.
+              </p>
+            </div>
+
+            <div className="pt-3 border-t flex justify-end gap-2">
+              <Button variant="secondary" onClick={() => setIsDeleteModalOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                variant="danger"
+                loading={deleteProductMutation.isPending}
+                onClick={() => deleteProductMutation.mutate(deleteConfirmProduct._id)}
+              >
+                Delete Product
+              </Button>
+            </div>
+          </div>
         </Modal>
       )}
     </div>
