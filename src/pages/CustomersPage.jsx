@@ -390,14 +390,14 @@ export const CustomersPage = () => {
       >
         <form onSubmit={handleSubmit} className="space-y-4">
           <Input
-            label="Customer Name *"
+            label="Customer Name"
             required
             placeholder="e.g. Ramesh Kumar"
             value={formData.name}
             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
           />
           <Input
-            label="Phone Number *"
+            label="Phone Number"
             required
             placeholder="10 Digits"
             value={formData.phone}

@@ -15,11 +15,13 @@ export const Input = forwardRef(({
 }, ref) => {
   const inputId = id || props.name || Math.random().toString(36).substring(7);
 
+  const cleanLabel = label ? label.replace(/\s*\*+$/, '') : '';
+
   return (
     <div className={cn('w-full', containerClassName)}>
       {label && (
         <label htmlFor={inputId} className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-          {label} {required && <span className="text-rose-500">*</span>}
+          {cleanLabel} {required && <span className="text-rose-500">*</span>}
         </label>
       )}
       <div className="relative rounded-xl">

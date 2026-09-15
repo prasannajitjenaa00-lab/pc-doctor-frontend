@@ -247,15 +247,15 @@ export const RepairsPage = () => {
 
   const handleCreateTicket = (e) => {
     e.preventDefault();
-    if (!formData.customerDetails.name || !formData.customerDetails.phone) {
+    if (!formData.customerDetails.name?.trim() || !formData.customerDetails.phone?.trim()) {
       toast.error('Customer name and phone number are required');
       return;
     }
-    if (!formData.deviceDetails.brand || !formData.deviceDetails.model) {
+    if (!formData.deviceDetails.brand?.trim() || !formData.deviceDetails.model?.trim()) {
       toast.error('Device brand and model are required');
       return;
     }
-    if (!formData.problemDescription) {
+    if (!formData.problemDescription?.trim()) {
       toast.error('Problem description is required');
       return;
     }
@@ -500,7 +500,7 @@ export const RepairsPage = () => {
               </div>
 
               <Input
-                label="Brand *"
+                label="Brand"
                 placeholder="e.g. Dell, HP, Lenovo"
                 required
                 value={formData.deviceDetails.brand}
@@ -512,7 +512,7 @@ export const RepairsPage = () => {
                 }
               />
               <Input
-                label="Model / Series *"
+                label="Model / Series"
                 placeholder="e.g. Inspiron 15 3501"
                 required
                 value={formData.deviceDetails.model}
