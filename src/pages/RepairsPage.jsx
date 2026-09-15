@@ -251,14 +251,6 @@ export const RepairsPage = () => {
       toast.error('Customer name and phone number are required');
       return;
     }
-    if (!formData.deviceDetails.brand?.trim() || !formData.deviceDetails.model?.trim()) {
-      toast.error('Device brand and model are required');
-      return;
-    }
-    if (!formData.problemDescription?.trim()) {
-      toast.error('Problem description is required');
-      return;
-    }
 
     createJobMutation.mutate(formData);
   };
@@ -476,7 +468,7 @@ export const RepairsPage = () => {
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3 mb-3">
               <div>
                 <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                  Device Type *
+                  Device Type
                 </label>
                 <select
                   value={formData.deviceDetails.deviceType}
@@ -502,7 +494,6 @@ export const RepairsPage = () => {
               <Input
                 label="Brand"
                 placeholder="e.g. Dell, HP, Lenovo"
-                required
                 value={formData.deviceDetails.brand}
                 onChange={(e) =>
                   setFormData({
@@ -514,7 +505,6 @@ export const RepairsPage = () => {
               <Input
                 label="Model / Series"
                 placeholder="e.g. Inspiron 15 3501"
-                required
                 value={formData.deviceDetails.model}
                 onChange={(e) =>
                   setFormData({
@@ -566,11 +556,10 @@ export const RepairsPage = () => {
 
             <div>
               <label className="block text-xs font-medium text-slate-700 dark:text-slate-300 mb-1.5">
-                Problem Description & Symptoms *
+                Problem Description & Symptoms
               </label>
               <textarea
                 rows={2}
-                required
                 placeholder="Detail customer complaints (e.g. No display, blue screen error 0x0000007B, liquid spill on keyboard...)"
                 value={formData.problemDescription}
                 onChange={(e) => setFormData({ ...formData, problemDescription: e.target.value })}
